@@ -49,13 +49,15 @@ const date = new Date();
 let hours = date.getHours();
 let mins = date.getMinutes();
 
-document.getElementById('hours').value = hours;
-document.getElementById('minutes').value = mins;
-const timeStr = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-document.getElementById('curr-time').innerHTML = timeStr;
-
 let prob = null;
-updateProb();
+
+function init() {
+    document.getElementById('hours').value = hours;
+    document.getElementById('minutes').value = mins;
+    const timeStr = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    document.getElementById('curr-time').innerHTML = timeStr;
+    updateProb();
+}
 
 function setTime() {
     document.getElementById('disp-time').style.display = 'none';
