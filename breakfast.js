@@ -1,4 +1,4 @@
-// vim: tabstop=4 shiftwidth=4 expandtab
+// vim: softtabstop=4 shiftwidth=4 expandtab
 
 function binomial(n, k) {
     if (k < 0 || k > n) return 0;
