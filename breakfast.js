@@ -1,21 +1,29 @@
 // vim: softtabstop=4 shiftwidth=4 expandtab
 
-function binomial(n, k) {
-    if (k < 0 || k > n) return 0;
-    if (k > n - k) k = n - k;
-    let res = 1;
-    for (let i = 0; i < k; i++) {
-        res *= (n - k + i + 1) / (i + 1);
-    }
-    return Math.round(res);
-}
-
-function binomialCdf(n, k, p) {
-    let sum = 0;
+// n, k: int
+// p: real
+// prec: int
+function binCdf(n, k, p, prec) {
+    // console.log('bincdf', n, k, R.tostr(p), prec);
+    const nr = R.mknumint(n);
+    let sum = R.zero();
     for (let i = 0; i <= k; i++) {
-        sum += binomial(n, i) * Math.pow(p, i) * Math.pow(1 - p, n - i);
+        const ir = R.mknumint(i);
+        const coeff = R.bin(nr, ir);
+        const innerPrec = prec+n+3+R.siz(coeff);
+        // console.log('in loop', i, R.tostr(coeff), innerPrec);
+        sum = R.add(
+            sum,
+            R.mul(
+                R.mul(
+                    coeff,
+                    R.pow(p, ir, innerPrec),
+                ),
+                R.pow(R.sub(R.one(), p), R.sub(nr, ir), innerPrec),
+            ),
+        );
     }
-    return sum;
+    return R.rnd(sum, prec);
 }
 
 // hours: int in [0, 23]
@@ -28,9 +36,18 @@ function calculateProb(hours, mins) {
     if (hours === 10) {
         if (mins === 0) return 1.0;
         if (mins < 30) {
-            const probNo = binomialCdf(28, mins - 1, 9/28);
-            console.log('prob no', probNo);
-            return 1 - probNo;
+            const probNo = binCdf(
+                29,
+                mins - 1,
+                R.div(R.mknumint(9), R.mknumint(29)),
+                50,
+            );
+            console.log('prob no', R.tostr(probNo));
+            const probYes = R.sub(R.one(), probNo);
+            console.log('prob yes', R.tostr(probYes));
+            const probYesNum = R.tonum(probYes);
+            console.log('prob yes num', probYesNum);
+            return probYesNum;
         }
         return 0.0;
     }
@@ -42,7 +59,9 @@ function calculateProb(hours, mins) {
 // return: boolean
 function evalProb(prob) {
     console.log('evaluating prob', prob);
-    return Math.random() < prob;
+    const rand = Math.random();
+    console.log('rand num', rand);
+    return rand < prob;
 }
 
 const date = new Date();
