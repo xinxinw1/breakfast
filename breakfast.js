@@ -34,12 +34,11 @@ function calculateProb(hours, mins) {
     if (hours < 8) return null;
     if (hours < 10) return 1.0;
     if (hours === 10) {
-        if (mins === 0) return 1.0;
         if (mins < 30) {
             const probNo = binCdf(
-                29,
-                mins - 1,
-                R.div(R.mknumint(6), R.mknumint(29)),
+                30,
+                mins,
+                R.div(R.mknumint(1), R.mknumint(4), 60),
                 50,
             );
             console.log('prob no', R.tostr(probNo));
