@@ -26,14 +26,18 @@ function binCdf(n, k, p, prec) {
     return R.rnd(sum, prec);
 }
 
+// The hours that breakfast starts and ends
+const BREAKFAST_START_HOUR = 6;
+const BREAKFAST_END_HOUR = 8;
+
 // hours: int in [0, 23]
 // mins: int in [0, 59]
 // return: ?float
 function calculateProb(hours, mins) {
     console.log('calculating prob with', hours, mins);
-    if (hours < 8) return null;
-    if (hours < 10) return 1.0;
-    if (hours === 10) {
+    if (hours < BREAKFAST_START_HOUR) return null;
+    if (hours < BREAKFAST_END_HOUR) return 1.0;
+    if (hours === BREAKFAST_END_HOUR) {
         if (mins < 30) {
             const probNo = binCdf(
                 30,
@@ -50,7 +54,7 @@ function calculateProb(hours, mins) {
         }
         return 0.0;
     }
-    if (hours < 12) return 0.0;
+    if (hours < BREAKFAST_END_HOUR + 2) return 0.0;
     return null;
 }
 
