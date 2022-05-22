@@ -26,22 +26,51 @@ function binCdf(n, k, p, prec) {
     return R.rnd(sum, prec);
 }
 
-// The hours that breakfast starts and ends
 const BREAKFAST_START_HOUR = 6;
 const BREAKFAST_END_HOUR = 8;
+const BREAKFAST_END_MINS = 30;
+
+const EOD_START_HOUR = 16;
+const EOD_END_HOUR = 17;
+const EOD_END_MINS = 30;
+
+const SLEEP_START_HOUR = 22;
+const SLEEP_END_HOUR = 23;
+const SLEEP_END_MINS = 30;
+
+// hours: int in [0, 23]
+// mins: int in [0, 59]
+// return: [str, ?float]
+function calculateProb(hours, mins) {
+    if (hours < SLEEP_END_HOUR + 2 - 24) {
+        return ['Do I get bedtime reward?', calculateProbFor(SLEEP_START_HOUR - 24, SLEEP_END_HOUR - 24, SLEEP_END_MINS, hours, mins)];
+    }
+    if (hours < BREAKFAST_END_HOUR + 2) {
+        return ['Do I have breakfast?', calculateProbFor(BREAKFAST_START_HOUR, BREAKFAST_END_HOUR, BREAKFAST_END_MINS, hours, mins)];
+    }
+    if (hours < EOD_END_HOUR + 2) {
+        return ['Do I get EOD reward?', calculateProbFor(EOD_START_HOUR, EOD_END_HOUR, EOD_END_MINS, hours, mins)];
+    }
+    if (hours < SLEEP_END_HOUR + 2) {
+        return ['Do I get bedtime reward?', calculateProbFor(SLEEP_START_HOUR, SLEEP_END_HOUR, SLEEP_END_MINS, hours, mins)];
+    }
+    return ['Check back later', null];
+}
 
 // hours: int in [0, 23]
 // mins: int in [0, 59]
 // return: ?float
-function calculateProb(hours, mins) {
-    console.log('calculating prob with', hours, mins);
-    if (hours < BREAKFAST_START_HOUR) return null;
-    if (hours < BREAKFAST_END_HOUR) return 1.0;
-    if (hours === BREAKFAST_END_HOUR) {
-        if (mins < 30) {
+function calculateProbFor(startHour, endHour, endMins, hours, mins) {
+    console.log('calculating prob with', 'startHour', startHour, 'endHour', endHour, 'endMins', endMins, 'hours', hours, 'mins', mins);
+    if (endMins > 30) throw new Error('end mins must be <= 30');
+    if (hours < startHour) return null;
+    if (hours < endHour) return 1.0;
+    if (hours === endHour) {
+        if (mins < endMins) return 1.0;
+        if (mins < endMins + 30) {
             const probNo = binCdf(
                 30,
-                mins,
+                mins - endMins,
                 R.div(R.mknumint(1), R.mknumint(4), 60),
                 50,
             );
@@ -54,7 +83,7 @@ function calculateProb(hours, mins) {
         }
         return 0.0;
     }
-    if (hours < BREAKFAST_END_HOUR + 2) return 0.0;
+    if (hours < endHour + 2) return 0.0;
     return null;
 }
 
@@ -71,6 +100,7 @@ const date = new Date();
 let hours = date.getHours();
 let mins = date.getMinutes();
 
+let buttonText = "";
 let prob = null;
 
 function init() {
@@ -95,7 +125,8 @@ function updateTime() {
 }
 
 function updateProb() {
-    prob = calculateProb(hours, mins);
+    [buttonText, prob] = calculateProb(hours, mins);
+    document.getElementById('check-button').value = buttonText;
     if (prob === null) {
         document.getElementById('prob-no').innerHTML = 'N/A';
         document.getElementById('out-of-no').innerHTML = '';
